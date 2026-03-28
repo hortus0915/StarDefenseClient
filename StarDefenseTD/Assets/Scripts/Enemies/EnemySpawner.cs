@@ -11,6 +11,7 @@ public class EnemySpawner : MonoBehaviour
     [SerializeField]private Transform[] wayPoints;
     [SerializeField] private PlayerHP playerHP;
     [SerializeField] private float SpawnTime =0.5f;
+    [SerializeField] private PlayerGold playerGold;
 
     private List<Enemy> enemyList;
     public List<Enemy> EnemyList => enemyList;
@@ -46,11 +47,15 @@ public class EnemySpawner : MonoBehaviour
         sliderClone.GetComponent<EnemyHPViewer>().Setup(clone.GetComponent<EnemyHP>());
     }
 
-    public void DestroyEnemy(EnemyDestroyType destroyType, Enemy enemy)
+    public void DestroyEnemy(EnemyDestroyType destroyType, Enemy enemy, int gold)
     {   
         if(destroyType == EnemyDestroyType.Arrive)
         {
             playerHP.TakeDamage(1);
+        }
+        else if (destroyType == EnemyDestroyType.Kill)
+        {
+            playerGold.CurrnetGold += gold;
         }
         
         if(enemyList.Contains(enemy))

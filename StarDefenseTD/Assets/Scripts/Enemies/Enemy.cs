@@ -2,15 +2,18 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
+public enum EnemyDestroyType {Kill = 0, Arrive}
 public class Enemy : MonoBehaviour
 {
    private int wayPointCount;
    private Transform[] wayPoints;
    private int currentIndex =0;
    private Movement2D movement2D;
+   private EnemySpawner enemySpawner;
 
-   public void Setup(Transform[] wayPoints)
+   public void Setup(EnemySpawner enemySpawner, Transform[] wayPoints)
     {
+        this.enemySpawner = enemySpawner;
         movement2D = GetComponent<Movement2D>();
 
         wayPointCount = wayPoints.Length;
@@ -52,7 +55,12 @@ public class Enemy : MonoBehaviour
         }
         else
         {
-            Destroy(gameObject);
+            OnDie(EnemyDestroyType.Arrive);
         }
+    }
+
+    public void OnDie(EnemyDestroyType destroyType)
+    {
+        enemySpawner.DestroyEnemy(destroyType, this);
     }
 }

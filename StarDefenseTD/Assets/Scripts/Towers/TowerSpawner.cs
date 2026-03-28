@@ -5,6 +5,7 @@ using UnityEngine;
 public class TowerSpawner : MonoBehaviour
 {
     [SerializeField]private GameObject towerPrefab;
+    [SerializeField] private EnemySpawner enemySpawner;
 
     public void SpawnTower(Transform tileTransform)
     {
@@ -17,6 +18,8 @@ public class TowerSpawner : MonoBehaviour
 
         tile.IsBuuldTower = true;
         
-        Instantiate(towerPrefab, tileTransform.position, Quaternion.identity);
+        GameObject clone = Instantiate(towerPrefab, tileTransform.position, Quaternion.identity);
+        TowerWeapon towerWeapon = clone.GetComponent<TowerWeapon>();
+        towerWeapon.Setup(enemySpawner);
     }
 }

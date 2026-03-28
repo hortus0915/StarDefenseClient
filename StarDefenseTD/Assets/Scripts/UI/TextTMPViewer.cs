@@ -10,9 +10,13 @@ public class TextTMPViewer : MonoBehaviour
    [SerializeField] private TextMeshProUGUI textPlayerGold;
    [SerializeField] private PlayerGold playerGold;
 
+   [SerializeField] private TextMeshProUGUI textWave;
+   [SerializeField] private WaveSystem waveSystem;
+
    private void Update()
     {
         textMeshProUGUI.text = $"{playerHP.CurrentHP} / {playerHP.MaxHP}";
         textPlayerGold.text = $"{playerGold.CurrnetGold}";
+        textWave.text = $"{waveSystem.CurrentWaveNumber} / {waveSystem.MaxWave}";
     }
 }

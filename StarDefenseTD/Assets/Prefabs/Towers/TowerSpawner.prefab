@@ -45,3 +45,22 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   towerPrefab: {fileID: 581699680261737940, guid: 3e2a79099816b0345884a4e4b14d0116, type: 3}
+  normalSpawnChance: 70
+  rareSpawnChance: 20
+  epicSpawnChance: 10
+  normalTowerDatas:
+  - {fileID: 11400000, guid: 4fd3e0b9d1e1442baab1000000000001, type: 2}
+  - {fileID: 11400000, guid: 4fd3e0b9d1e1442baab1000000000004, type: 2}
+  - {fileID: 11400000, guid: 4fd3e0b9d1e1442baab1000000000007, type: 2}
+  rareTowerDatas:
+  - {fileID: 11400000, guid: 4fd3e0b9d1e1442baab1000000000002, type: 2}
+  - {fileID: 11400000, guid: 4fd3e0b9d1e1442baab1000000000005, type: 2}
+  - {fileID: 11400000, guid: 4fd3e0b9d1e1442baab1000000000008, type: 2}
+  epicTowerDatas:
+  - {fileID: 11400000, guid: 4fd3e0b9d1e1442baab1000000000003, type: 2}
+  - {fileID: 11400000, guid: 4fd3e0b9d1e1442baab1000000000006, type: 2}
+  - {fileID: 11400000, guid: 4fd3e0b9d1e1442baab1000000000009, type: 2}
+  enemySpawner: {fileID: 0}
+  towerBuildGold: 20
+  playerGold: {fileID: 0}
+  towerSpawnYOffset: 0.1

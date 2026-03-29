@@ -15,7 +15,7 @@ public class TextTMPViewer : MonoBehaviour
 
    private void Update()
     {
-        textMeshProUGUI.text = $"{playerHP.CurrentHP} / {playerHP.MaxHP}";
+        textMeshProUGUI.text = $"{playerHP.CurrentHP}";
         textPlayerGold.text = $"{playerGold.CurrnetGold}";
         textWave.text = $"{waveSystem.CurrentWaveNumber} / {waveSystem.MaxWave}";
     }

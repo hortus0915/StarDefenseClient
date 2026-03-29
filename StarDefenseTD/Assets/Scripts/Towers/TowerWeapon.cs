@@ -6,10 +6,13 @@ public enum WeaponState { SearchTarget = 0, AttackToTarget }
 public class TowerWeapon : MonoBehaviour
 {
     private static readonly float[] DefaultShotAngles = new float[] { 0.0f };
+    private static readonly List<TowerWeapon> activeTowers = new List<TowerWeapon>();
 
     [Header("Tower Data")]
     [SerializeField] private TowerData towerData;
-    [SerializeField] private SpriteRenderer towerSpriteRenderer;
+    [SerializeField] private Transform headTransform;
+    [SerializeField] private SpriteRenderer headRenderer;
+    [SerializeField] private SpriteRenderer upgradeIndicatorRenderer;
 
     [Header("Fallback")]
     [SerializeField] private GameObject projectilePrefab;
@@ -25,10 +28,13 @@ public class TowerWeapon : MonoBehaviour
     private WeaponState weaponState = WeaponState.SearchTarget;
     private Transform attackTarget = null;
     private EnemySpawner enemySpawner;
+    private Tile placedTile;
 
+    public static IReadOnlyList<TowerWeapon> ActiveTowers => activeTowers;
     public TowerData TowerData => towerData;
     public TowerType TowerType => towerData != null ? towerData.TowerType : TowerType.White;
     public TowerGrade TowerGrade => towerData != null ? towerData.TowerGrade : TowerGrade.Normal;
+    public Tile PlacedTile => placedTile;
 
     private GameObject CurrentProjectilePrefab => towerData != null && towerData.ProjectilePrefab != null ? towerData.ProjectilePrefab : projectilePrefab;
     private float CurrentAttackRate => towerData != null ? towerData.AttackRate : attackRate;
@@ -56,12 +62,30 @@ public class TowerWeapon : MonoBehaviour
 
     private void Awake()
     {
-        if (towerSpriteRenderer == null)
+        if (headRenderer == null && headTransform != null)
         {
-            towerSpriteRenderer = GetComponent<SpriteRenderer>();
+            headRenderer = headTransform.GetComponent<SpriteRenderer>();
+        }
+
+        if (upgradeIndicatorRenderer != null)
+        {
+            upgradeIndicatorRenderer.gameObject.SetActive(false);
         }
 
         ApplyTowerData();
+    }
+
+    private void OnEnable()
+    {
+        if (activeTowers.Contains(this) == false)
+        {
+            activeTowers.Add(this);
+        }
+    }
+
+    private void OnDisable()
+    {
+        activeTowers.Remove(this);
     }
 
     public void Setup(EnemySpawner enemySpawner)
@@ -77,6 +101,38 @@ public class TowerWeapon : MonoBehaviour
         ApplyTowerData();
     }
 
+    public void AssignTile(Tile tile)
+    {
+        placedTile = tile;
+        if (placedTile != null)
+        {
+            placedTile.SetTower(this);
+        }
+    }
+
+    public void SetUpgradeAvailable(bool isAvailable)
+    {
+        if (upgradeIndicatorRenderer == null)
+        {
+            return;
+        }
+
+        upgradeIndicatorRenderer.gameObject.SetActive(isAvailable);
+    }
+
+    public void RemoveFromBoard()
+    {
+        if (placedTile != null)
+        {
+            placedTile.ClearTower(this);
+            placedTile = null;
+        }
+
+        SetUpgradeAvailable(false);
+        gameObject.SetActive(false);
+        Destroy(gameObject);
+    }
+
     public void ChangeState(WeaponState newState)
     {
         StopCoroutine(weaponState.ToString());
@@ -88,27 +144,29 @@ public class TowerWeapon : MonoBehaviour
     {
         if (attackTarget != null)
         {
-            RoteteToTarget();
+            RotateHeadToTarget();
         }
     }
 
     private void ApplyTowerData()
     {
-        if (towerData == null || towerSpriteRenderer == null || towerData.TowerSprite == null)
+        if (towerData == null || headRenderer == null || towerData.TowerSprite == null)
         {
             return;
         }
 
-        towerSpriteRenderer.sprite = towerData.TowerSprite;
+        headRenderer.sprite = towerData.TowerSprite;
     }
 
-    private void RoteteToTarget()
+    private void RotateHeadToTarget()
     {
+        Transform rotationTarget = headTransform != null ? headTransform : transform;
+
         float dx = attackTarget.position.x - transform.position.x;
         float dy = attackTarget.position.y - transform.position.y;
 
         float degree = Mathf.Atan2(dy, dx) * Mathf.Rad2Deg;
-        transform.rotation = Quaternion.Euler(0, 0, degree);
+        rotationTarget.rotation = Quaternion.Euler(0, 0, degree);
     }
 
     private IEnumerator SearchTarget()

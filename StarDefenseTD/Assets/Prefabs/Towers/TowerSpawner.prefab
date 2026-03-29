@@ -64,3 +64,5 @@ MonoBehaviour:
   towerBuildGold: 20
   playerGold: {fileID: 0}
   towerSpawnYOffset: 0.1
+  towerColliderCenter: {x: 0, y: 0, z: 0}
+  towerColliderSize: {x: 1.2, y: 1.2, z: 0.2}

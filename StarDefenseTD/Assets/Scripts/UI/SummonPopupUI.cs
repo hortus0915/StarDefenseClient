@@ -1,15 +1,28 @@
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class SummonPopupUI : MonoBehaviour
 {
+    private enum PopupMode
+    {
+        None = 0,
+        Summon = 1,
+        Upgrade = 2,
+    }
+
     [SerializeField] private RectTransform popupRoot;
     [SerializeField] private Button summonButton;
     [SerializeField] private TowerSpawner towerSpawner;
     [SerializeField] private Camera worldCamera;
     [SerializeField] private Vector3 popupWorldOffset = new Vector3(0.0f, 0.6f, 0.0f);
+    [SerializeField] private TMP_Text actionLabelText;
+    [SerializeField] private TMP_Text goldCostText;
+    [SerializeField] private GameObject goldPanel;
 
     private Transform selectedTile;
+    private TowerWeapon selectedTower;
+    private PopupMode popupMode;
 
     public Transform SelectedTile => selectedTile;
     public bool IsVisible => popupRoot != null && popupRoot.gameObject.activeSelf;
@@ -26,6 +39,29 @@ public class SummonPopupUI : MonoBehaviour
             summonButton = GetComponentInChildren<Button>(true);
         }
 
+        if (actionLabelText == null)
+        {
+            Transform actionLabelTransform = transform.Find("SummonText");
+            if (actionLabelTransform != null)
+            {
+                actionLabelText = actionLabelTransform.GetComponent<TMP_Text>();
+            }
+        }
+
+        if (goldPanel == null)
+        {
+            Transform goldPanelTransform = transform.Find("GoldPanel");
+            if (goldPanelTransform != null)
+            {
+                goldPanel = goldPanelTransform.gameObject;
+            }
+        }
+
+        if (goldCostText == null && goldPanel != null)
+        {
+            goldCostText = goldPanel.GetComponentInChildren<TMP_Text>(true);
+        }
+
         ResolveTowerSpawner();
 
         if (worldCamera == null)
@@ -35,7 +71,7 @@ public class SummonPopupUI : MonoBehaviour
 
         if (summonButton != null)
         {
-            summonButton.onClick.AddListener(OnClickSummon);
+            summonButton.onClick.AddListener(OnClickAction);
         }
 
         Hide();
@@ -43,8 +79,20 @@ public class SummonPopupUI : MonoBehaviour
 
     private void LateUpdate()
     {
-        if (IsVisible == false || selectedTile == null)
+        if (IsVisible == false)
         {
+            return;
+        }
+
+        if (popupMode == PopupMode.Summon && selectedTile == null)
+        {
+            Hide();
+            return;
+        }
+
+        if (popupMode == PopupMode.Upgrade && selectedTower == null)
+        {
+            Hide();
             return;
         }
 
@@ -57,7 +105,13 @@ public class SummonPopupUI : MonoBehaviour
         return towerSpawner != null && towerSpawner.CanSpawnTower(tileTransform);
     }
 
-    public void Show(Transform tileTransform)
+    public bool CanShowUpgradeOn(TowerWeapon towerWeapon)
+    {
+        ResolveTowerSpawner();
+        return towerSpawner != null && towerSpawner.CanUpgradeTower(towerWeapon);
+    }
+
+    public void ShowSummon(Transform tileTransform)
     {
         if (popupRoot == null || tileTransform == null)
         {
@@ -66,14 +120,39 @@ public class SummonPopupUI : MonoBehaviour
 
         ResolveTowerSpawner();
 
+        popupMode = PopupMode.Summon;
         selectedTile = tileTransform;
+        selectedTower = null;
+        SetActionLabel("소환");
+        SetGoldPanelVisible(true);
+        UpdateGoldCostText();
+        popupRoot.gameObject.SetActive(true);
+        UpdatePopupPosition();
+    }
+
+    public void ShowUpgrade(TowerWeapon towerWeapon)
+    {
+        if (popupRoot == null || towerWeapon == null)
+        {
+            return;
+        }
+
+        ResolveTowerSpawner();
+
+        popupMode = PopupMode.Upgrade;
+        selectedTower = towerWeapon;
+        selectedTile = null;
+        SetActionLabel("승급");
+        SetGoldPanelVisible(false);
         popupRoot.gameObject.SetActive(true);
         UpdatePopupPosition();
     }
 
     public void Hide()
     {
+        popupMode = PopupMode.None;
         selectedTile = null;
+        selectedTower = null;
 
         if (popupRoot != null)
         {
@@ -98,7 +177,7 @@ public class SummonPopupUI : MonoBehaviour
 
     private void UpdatePopupPosition()
     {
-        if (selectedTile == null || popupRoot == null)
+        if (popupRoot == null)
         {
             return;
         }
@@ -108,22 +187,69 @@ public class SummonPopupUI : MonoBehaviour
             worldCamera = Camera.main;
         }
 
-        Vector3 worldPosition = selectedTile.position + popupWorldOffset;
-        Vector3 screenPosition = worldCamera != null ? worldCamera.WorldToScreenPoint(worldPosition) : worldPosition;
-        popupRoot.position = screenPosition;
-    }
-
-    private void OnClickSummon()
-    {
-        if (selectedTile == null || towerSpawner == null)
+        Vector3 worldPosition = Vector3.zero;
+        if (popupMode == PopupMode.Summon && selectedTile != null)
+        {
+            worldPosition = selectedTile.position + popupWorldOffset;
+        }
+        else if (popupMode == PopupMode.Upgrade && selectedTower != null)
+        {
+            worldPosition = selectedTower.transform.position + popupWorldOffset;
+        }
+        else
         {
             return;
         }
 
-        bool isSpawned = towerSpawner.SpawnTower(selectedTile);
-        if (isSpawned)
+        Vector3 screenPosition = worldCamera != null ? worldCamera.WorldToScreenPoint(worldPosition) : worldPosition;
+        popupRoot.position = screenPosition;
+    }
+
+    private void OnClickAction()
+    {
+        ResolveTowerSpawner();
+        if (towerSpawner == null)
+        {
+            return;
+        }
+
+        bool isSucceeded = false;
+        if (popupMode == PopupMode.Summon && selectedTile != null)
+        {
+            isSucceeded = towerSpawner.SpawnTower(selectedTile);
+        }
+        else if (popupMode == PopupMode.Upgrade && selectedTower != null)
+        {
+            isSucceeded = towerSpawner.TryUpgradeTower(selectedTower);
+        }
+
+        if (isSucceeded)
         {
             Hide();
+        }
+    }
+
+    private void SetActionLabel(string label)
+    {
+        if (actionLabelText != null)
+        {
+            actionLabelText.text = label;
+        }
+    }
+
+    private void SetGoldPanelVisible(bool isVisible)
+    {
+        if (goldPanel != null)
+        {
+            goldPanel.SetActive(isVisible);
+        }
+    }
+
+    private void UpdateGoldCostText()
+    {
+        if (goldCostText != null && towerSpawner != null)
+        {
+            goldCostText.text = towerSpawner.TowerBuildGold.ToString();
         }
     }
 
@@ -131,7 +257,7 @@ public class SummonPopupUI : MonoBehaviour
     {
         if (summonButton != null)
         {
-            summonButton.onClick.RemoveListener(OnClickSummon);
+            summonButton.onClick.RemoveListener(OnClickAction);
         }
     }
 }

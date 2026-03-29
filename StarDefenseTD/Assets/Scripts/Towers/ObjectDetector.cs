@@ -1,5 +1,3 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.EventSystems;
 
@@ -9,7 +7,6 @@ public class ObjectDetector : MonoBehaviour
 
     private Camera mainCamera;
     private Ray ray;
-    private RaycastHit hit;
 
     private void Awake()
     {
@@ -40,35 +37,61 @@ public class ObjectDetector : MonoBehaviour
         }
 
         ResolveSummonPopupUI();
-
         ray = mainCamera.ScreenPointToRay(Input.mousePosition);
 
-        if (Physics.Raycast(ray, out hit) == false)
+        RaycastHit[] hits = Physics.RaycastAll(ray, Mathf.Infinity);
+        TowerWeapon clickedTower = null;
+        Transform clickedTile = null;
+
+        for (int i = 0; i < hits.Length; i++)
+        {
+            TowerWeapon towerWeapon = hits[i].transform.GetComponentInParent<TowerWeapon>();
+            if (towerWeapon != null)
+            {
+                clickedTower = towerWeapon;
+                break;
+            }
+
+            if (clickedTile == null && hits[i].transform.CompareTag("Tile"))
+            {
+                clickedTile = hits[i].transform;
+            }
+        }
+
+        if (clickedTower != null)
+        {
+            if (summonPopupUI != null && summonPopupUI.CanShowUpgradeOn(clickedTower))
+            {
+                summonPopupUI.ShowUpgrade(clickedTower);
+            }
+            else
+            {
+                HideSummonPopup();
+            }
+
+            return;
+        }
+
+        if (clickedTile == null)
         {
             HideSummonPopup();
             return;
         }
 
-        if (hit.transform.CompareTag("Tile") == false)
-        {
-            HideSummonPopup();
-            return;
-        }
-
-        Tile tile = hit.transform.GetComponent<Tile>();
+        Tile tile = clickedTile.GetComponent<Tile>();
         if (tile == null || tile.IsBuuldTower)
         {
             HideSummonPopup();
             return;
         }
 
-        if (summonPopupUI == null || summonPopupUI.CanShowOn(hit.transform) == false)
+        if (summonPopupUI == null || summonPopupUI.CanShowOn(clickedTile) == false)
         {
             HideSummonPopup();
             return;
         }
 
-        summonPopupUI.Show(hit.transform);
+        summonPopupUI.ShowSummon(clickedTile);
     }
 
     private void ResolveSummonPopupUI()

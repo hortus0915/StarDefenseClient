@@ -1,28 +1,36 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class SliderPositionAutoSetter : MonoBehaviour
 {
-  [SerializeField] private Vector3 distance = Vector3.up * 20.0f;
-  private Transform targetTransform;
-  private RectTransform rectTransform;
+    [SerializeField] private Vector3 distance = Vector3.up * 20.0f;
 
-  public void Setup(Transform target)
+    private Transform targetTransform;
+    private RectTransform rectTransform;
+
+    public void Setup(Transform target)
     {
-        targetTransform =target;
-        rectTransform = GetComponent<RectTransform>();
+        targetTransform = target;
+
+        if (rectTransform == null)
+        {
+            rectTransform = GetComponent<RectTransform>();
+        }
     }
 
     private void LateUpdate()
     {
-        if(targetTransform == null)
+        if (targetTransform == null)
         {
-            Destroy(gameObject);
+            ObjectPoolManager.Instance.ReturnObject(gameObject);
             return;
         }
 
         Vector3 screenPosition = Camera.main.WorldToScreenPoint(targetTransform.position);
         rectTransform.position = screenPosition + distance;
+    }
+
+    private void OnDisable()
+    {
+        targetTransform = null;
     }
 }

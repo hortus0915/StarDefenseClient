@@ -1,19 +1,18 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
 public class EnemySpawner : MonoBehaviour
 {
-    //[SerializeField] private GameObject enemyPrefab;
     [SerializeField] private GameObject enemyHPSliderPrefab;
     [SerializeField] private Transform canvasTransform;
-    [SerializeField]private Transform[] wayPoints;
+    [SerializeField] private Transform[] wayPoints;
     [SerializeField] private PlayerHP playerHP;
-    //[SerializeField] private float SpawnTime =0.5f;
     [SerializeField] private PlayerGold playerGold;
 
     private List<Enemy> enemyList;
+    private Dictionary<Enemy, GameObject> enemySliderMap;
+    private Transform enemyHPSliderPoolRoot;
     private int activeSpawnRoutineCount;
 
     public List<Enemy> EnemyList => enemyList;
@@ -22,6 +21,7 @@ public class EnemySpawner : MonoBehaviour
     private void Awake()
     {
         enemyList = new List<Enemy>();
+        enemySliderMap = new Dictionary<Enemy, GameObject>();
     }
 
     public void StartWave(Wave wave)
@@ -40,37 +40,57 @@ public class EnemySpawner : MonoBehaviour
         activeSpawnRoutineCount++;
 
         int spawnEnemyCount = 0;
+        Vector3 spawnPosition = wayPoints != null && wayPoints.Length > 0 ? wayPoints[0].position : transform.position;
 
         while (spawnEnemyCount < wave.maxEnemyCount)
         {
             int enemyIndex = UnityEngine.Random.Range(0, wave.enemyPrefabs.Length);
-            GameObject clone = Instantiate(wave.enemyPrefabs[enemyIndex]);
-            Enemy enemy = clone.GetComponent<Enemy>();
+            GameObject clone = ObjectPoolManager.Instance.GetObject(wave.enemyPrefabs[enemyIndex], spawnPosition, Quaternion.identity);
+            Enemy enemy = clone != null ? clone.GetComponent<Enemy>() : null;
 
             if (enemy != null)
             {
                 enemy.ApplyWaveStats(wave.enemyGold, wave.enemyAttackDamage);
                 enemy.Setup(this, wayPoints);
                 enemyList.Add(enemy);
+                SpawnEnemyHPSlider(enemy);
             }
 
-            SpawnEnemyHPSlider(clone);
             spawnEnemyCount++;
-
             yield return new WaitForSeconds(wave.spawnTime);
         }
 
         activeSpawnRoutineCount--;
     }
 
-    private void SpawnEnemyHPSlider(GameObject clone)
+    private void SpawnEnemyHPSlider(Enemy enemy)
     {
-        GameObject sliderClone = Instantiate(enemyHPSliderPrefab);
-        sliderClone.transform.SetParent(canvasTransform);
+        if (enemy == null || enemyHPSliderPrefab == null || canvasTransform == null)
+        {
+            return;
+        }
+
+        if (enemyHPSliderPoolRoot == null)
+        {
+            enemyHPSliderPoolRoot = ObjectPoolManager.Instance.GetOrCreatePoolRoot("EnemyHPSliderPool", canvasTransform);
+        }
+
+        GameObject sliderClone = ObjectPoolManager.Instance.GetObject(enemyHPSliderPrefab, Vector3.zero, Quaternion.identity, enemyHPSliderPoolRoot);
         sliderClone.transform.localScale = Vector3.one;
 
-        sliderClone.GetComponent<SliderPositionAutoSetter>().Setup(clone.transform);
-        sliderClone.GetComponent<EnemyHPViewer>().Setup(clone.GetComponent<EnemyHP>());
+        SliderPositionAutoSetter sliderPositionAutoSetter = sliderClone.GetComponent<SliderPositionAutoSetter>();
+        if (sliderPositionAutoSetter != null)
+        {
+            sliderPositionAutoSetter.Setup(enemy.transform);
+        }
+
+        EnemyHPViewer enemyHPViewer = sliderClone.GetComponent<EnemyHPViewer>();
+        if (enemyHPViewer != null)
+        {
+            enemyHPViewer.Setup(enemy.GetComponent<EnemyHP>());
+        }
+
+        enemySliderMap[enemy] = sliderClone;
     }
 
     public void DestroyEnemy(EnemyDestroyType destroyType, Enemy enemy)
@@ -95,10 +115,17 @@ public class EnemySpawner : MonoBehaviour
             }
         }
 
-        if (enemyList.Contains(enemy))
+        enemyList.Remove(enemy);
+
+        if (enemySliderMap.TryGetValue(enemy, out GameObject sliderObject))
         {
-            enemyList.Remove(enemy);
-            Destroy(enemy.gameObject);
+            enemySliderMap.Remove(enemy);
+            if (sliderObject != null)
+            {
+                ObjectPoolManager.Instance.ReturnObject(sliderObject);
+            }
         }
+
+        ObjectPoolManager.Instance.ReturnObject(enemy.gameObject);
     }
 }

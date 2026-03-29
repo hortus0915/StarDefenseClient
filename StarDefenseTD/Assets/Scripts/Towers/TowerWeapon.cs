@@ -300,7 +300,7 @@ public class TowerWeapon : MonoBehaviour
             float laneOffset = GetProjectileLaneOffset(i, shotCount);
             Vector3 spawnPosition = spawnPoint.position + spawnPoint.up * laneOffset;
 
-            GameObject clone = Instantiate(currentProjectilePrefab, spawnPosition, Quaternion.Euler(0, 0, degree));
+            GameObject clone = ObjectPoolManager.Instance.GetObject(currentProjectilePrefab, spawnPosition, Quaternion.Euler(0, 0, degree));
             Projectile projectile = clone.GetComponent<Projectile>();
             if (projectile != null)
             {

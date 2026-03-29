@@ -3789,6 +3789,10 @@ PrefabInstance:
       propertyPath: m_Name
       value: ImagePlayerWave
       objectReference: {fileID: 0}
+    - target: {fileID: 1365556500287623377, guid: d8313cde38c3eb04189bb3fecf2fa15d, type: 3}
+      propertyPath: m_AnchoredPosition.x
+      value: 154
+      objectReference: {fileID: 0}
     - target: {fileID: 4219805479970708707, guid: d8313cde38c3eb04189bb3fecf2fa15d, type: 3}
       propertyPath: m_Pivot.x
       value: 0.5

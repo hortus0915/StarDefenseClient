@@ -60,9 +60,9 @@ public class ObjectDetector : MonoBehaviour
 
         if (clickedTower != null)
         {
-            if (summonPopupUI != null && summonPopupUI.CanShowUpgradeOn(clickedTower))
+            if (summonPopupUI != null && summonPopupUI.CanShowTowerActionsOn(clickedTower))
             {
-                summonPopupUI.ShowUpgrade(clickedTower);
+                summonPopupUI.ShowTowerActions(clickedTower);
             }
             else
             {

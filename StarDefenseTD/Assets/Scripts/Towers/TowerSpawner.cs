@@ -90,6 +90,16 @@ public class TowerSpawner : MonoBehaviour
         return FindUpgradePartner(selectedTower) != null;
     }
 
+    public bool CanChangeTower(TowerWeapon selectedTower)
+    {
+        if (selectedTower == null)
+        {
+            return false;
+        }
+
+        return GetRandomTowerData(selectedTower.TowerGrade) != null;
+    }
+
     public bool SpawnTower(Transform tileTransform)
     {
         if (CanSpawnTower(tileTransform) == false)
@@ -150,6 +160,24 @@ public class TowerSpawner : MonoBehaviour
         selectedTower.SetTowerData(upgradedTowerData);
         partnerTower.RemoveFromBoard();
 
+        RefreshUpgradeableTowers();
+        return true;
+    }
+
+    public bool TryChangeTower(TowerWeapon selectedTower)
+    {
+        if (CanChangeTower(selectedTower) == false)
+        {
+            return false;
+        }
+
+        TowerData changedTowerData = GetRandomTowerData(selectedTower.TowerGrade);
+        if (changedTowerData == null)
+        {
+            return false;
+        }
+
+        selectedTower.SetTowerData(changedTowerData);
         RefreshUpgradeableTowers();
         return true;
     }
@@ -278,6 +306,46 @@ public class TowerSpawner : MonoBehaviour
             {
                 return towerDatas[index];
             }
+        }
+
+        return null;
+    }
+
+    private TowerData GetRandomTowerData(TowerData[] towerDatas, TowerType excludedTowerType)
+    {
+        if (towerDatas == null || towerDatas.Length == 0)
+        {
+            return null;
+        }
+
+        int validCount = 0;
+        for (int i = 0; i < towerDatas.Length; i++)
+        {
+            if (towerDatas[i] != null && towerDatas[i].TowerType != excludedTowerType)
+            {
+                validCount++;
+            }
+        }
+
+        if (validCount == 0)
+        {
+            return null;
+        }
+
+        int pickIndex = Random.Range(0, validCount);
+        for (int i = 0; i < towerDatas.Length; i++)
+        {
+            if (towerDatas[i] == null || towerDatas[i].TowerType == excludedTowerType)
+            {
+                continue;
+            }
+
+            if (pickIndex == 0)
+            {
+                return towerDatas[i];
+            }
+
+            pickIndex--;
         }
 
         return null;

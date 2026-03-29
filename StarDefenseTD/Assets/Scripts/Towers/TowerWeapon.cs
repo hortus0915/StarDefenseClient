@@ -112,12 +112,11 @@ public class TowerWeapon : MonoBehaviour
 
     public void SetUpgradeAvailable(bool isAvailable)
     {
-        if (upgradeIndicatorRenderer == null)
+        if (upgradeIndicatorRenderer != null)
         {
-            return;
+            upgradeIndicatorRenderer.gameObject.SetActive(isAvailable);
         }
-
-        upgradeIndicatorRenderer.gameObject.SetActive(isAvailable);
+       
     }
 
     public void RemoveFromBoard()

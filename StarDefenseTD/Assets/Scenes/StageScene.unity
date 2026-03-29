@@ -286,7 +286,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 0, b: 0, a: 0}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -2635,7 +2635,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
   m_Color: {r: 1, g: 1, b: 1, a: 0}
-  m_RaycastTarget: 1
+  m_RaycastTarget: 0
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
   m_OnCullStateChanged:
@@ -4069,6 +4069,18 @@ PrefabInstance:
       propertyPath: enemySpawner
       value: 
       objectReference: {fileID: 1044620146}
+    - target: {fileID: 5135198107276206647, guid: bd692e7a59299684caf68b5eb99bd1d2, type: 3}
+      propertyPath: spawnTowerData
+      value: 
+      objectReference: {fileID: 11400000, guid: 4fd3e0b9d1e1442baab1000000000003, type: 2}
+    - target: {fileID: 5135198107276206647, guid: bd692e7a59299684caf68b5eb99bd1d2, type: 3}
+      propertyPath: epicSpawnChance
+      value: 5
+      objectReference: {fileID: 0}
+    - target: {fileID: 5135198107276206647, guid: bd692e7a59299684caf68b5eb99bd1d2, type: 3}
+      propertyPath: normalSpawnChance
+      value: 75
+      objectReference: {fileID: 0}
     - target: {fileID: 7793705108542629442, guid: bd692e7a59299684caf68b5eb99bd1d2, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0

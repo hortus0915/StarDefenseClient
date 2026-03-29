@@ -47,8 +47,12 @@ public class EnemySpawner : MonoBehaviour
             GameObject clone = Instantiate(wave.enemyPrefabs[enemyIndex]);
             Enemy enemy = clone.GetComponent<Enemy>();
 
-            enemy.Setup(this, wayPoints);
-            enemyList.Add(enemy);
+            if (enemy != null)
+            {
+                enemy.ApplyWaveStats(wave.enemyGold, wave.enemyAttackDamage);
+                enemy.Setup(this, wayPoints);
+                enemyList.Add(enemy);
+            }
 
             SpawnEnemyHPSlider(clone);
             spawnEnemyCount++;
@@ -69,15 +73,26 @@ public class EnemySpawner : MonoBehaviour
         sliderClone.GetComponent<EnemyHPViewer>().Setup(clone.GetComponent<EnemyHP>());
     }
 
-    public void DestroyEnemy(EnemyDestroyType destroyType, Enemy enemy, int gold)
+    public void DestroyEnemy(EnemyDestroyType destroyType, Enemy enemy)
     {
+        if (enemy == null)
+        {
+            return;
+        }
+
         if (destroyType == EnemyDestroyType.Arrive)
         {
-            playerHP.TakeDamage(1);
+            if (playerHP != null)
+            {
+                playerHP.TakeDamage(enemy.AttackDamage);
+            }
         }
         else if (destroyType == EnemyDestroyType.Kill)
         {
-            playerGold.CurrnetGold += gold;
+            if (playerGold != null)
+            {
+                playerGold.CurrnetGold += enemy.GoldReward;
+            }
         }
 
         if (enemyList.Contains(enemy))

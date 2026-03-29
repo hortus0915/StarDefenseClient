@@ -9,7 +9,7 @@ public class WaveSystem : MonoBehaviour
     [SerializeField] private PlayerHP playerHP;
     [SerializeField] private bool autoStartWave = true;
     [SerializeField] private float firstWaveDelay = 5.0f;
-    [SerializeField] private float waveInterval = 20.0f;
+    [SerializeField] private float waveInterval = 10.0f;
 
     private int currentWaveIndex = -1;
     private Coroutine autoWaveRoutine;
@@ -152,5 +152,8 @@ public struct Wave
 {
     public float spawnTime;
     public int maxEnemyCount;
+    public int enemyGold;
+    public int enemyAttackDamage;
     public GameObject[] enemyPrefabs;
 }
+

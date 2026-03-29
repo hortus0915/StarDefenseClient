@@ -36,12 +36,43 @@ public class TowerSpawner : MonoBehaviour
         }
 
         Tile tile = tileTransform.GetComponent<Tile>();
-        if (tile == null || tile.IsBuuldTower)
+        if (tile == null || tile.CanBuildTower == false)
         {
             return false;
         }
 
         return true;
+    }
+
+    public bool CanShowRepairTile(Tile tile)
+    {
+        return tile != null && tile.CanRepair();
+    }
+
+    public bool CanRepairTile(Tile tile)
+    {
+        if (tile == null || playerGold == null)
+        {
+            return false;
+        }
+
+        if (tile.CanRepair() == false)
+        {
+            return false;
+        }
+
+        return tile.RepairGold <= playerGold.CurrnetGold;
+    }
+
+    public bool TryRepairTile(Tile tile)
+    {
+        if (CanRepairTile(tile) == false)
+        {
+            return false;
+        }
+
+        playerGold.CurrnetGold -= tile.RepairGold;
+        return tile.TryRepair();
     }
 
     public bool CanUpgradeTower(TowerWeapon selectedTower)

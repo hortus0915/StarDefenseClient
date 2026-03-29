@@ -2,12 +2,27 @@ using UnityEngine;
 
 public class Tile : MonoBehaviour
 {
+    [SerializeField] private bool requiresRepair;
+    [SerializeField] private int repairGold = 20;
+    [SerializeField] private SpriteRenderer tileRenderer;
+    [SerializeField] private Sprite defaultTileSprite;
+    [SerializeField] private Sprite lockedTileSprite;
+
     public bool IsBuuldTower { get; set; }
     public TowerWeapon CurrentTower { get; private set; }
+    public bool RequiresRepair => requiresRepair;
+    public int RepairGold => repairGold;
+    public bool CanBuildTower => requiresRepair == false && IsBuuldTower == false;
 
     private void Awake()
     {
+        if (tileRenderer == null)
+        {
+            tileRenderer = GetComponent<SpriteRenderer>();
+        }
+
         IsBuuldTower = CurrentTower != null;
+        ApplyTileSprite();
     }
 
     public void SetTower(TowerWeapon tower)
@@ -25,5 +40,55 @@ public class Tile : MonoBehaviour
 
         CurrentTower = null;
         IsBuuldTower = false;
+    }
+
+    public bool CanRepair()
+    {
+        return requiresRepair;
+    }
+
+    public bool TryRepair()
+    {
+        if (requiresRepair == false)
+        {
+            return false;
+        }
+
+        requiresRepair = false;
+        ApplyTileSprite();
+        return true;
+    }
+
+    private void OnValidate()
+    {
+        if (tileRenderer == null)
+        {
+            tileRenderer = GetComponent<SpriteRenderer>();
+        }
+
+        ApplyTileSprite();
+    }
+
+    private void ApplyTileSprite()
+    {
+        if (tileRenderer == null)
+        {
+            return;
+        }
+
+        if (requiresRepair)
+        {
+            if (lockedTileSprite != null)
+            {
+                tileRenderer.sprite = lockedTileSprite;
+            }
+
+            return;
+        }
+
+        if (defaultTileSprite != null)
+        {
+            tileRenderer.sprite = defaultTileSprite;
+        }
     }
 }

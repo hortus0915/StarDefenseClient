@@ -9,6 +9,7 @@ public class SummonPopupUI : MonoBehaviour
         None = 0,
         Summon = 1,
         Upgrade = 2,
+        Repair = 3,
     }
 
     [SerializeField] private RectTransform popupRoot;
@@ -22,6 +23,7 @@ public class SummonPopupUI : MonoBehaviour
 
     private Transform selectedTile;
     private TowerWeapon selectedTower;
+    private Tile selectedRepairTile;
     private PopupMode popupMode;
 
     public Transform SelectedTile => selectedTile;
@@ -96,6 +98,14 @@ public class SummonPopupUI : MonoBehaviour
             return;
         }
 
+        if (popupMode == PopupMode.Repair && (selectedRepairTile == null || selectedRepairTile.RequiresRepair == false))
+        {
+            Hide();
+            return;
+        }
+
+        UpdateGoldCostText();
+        UpdateButtonInteractable();
         UpdatePopupPosition();
     }
 
@@ -111,6 +121,12 @@ public class SummonPopupUI : MonoBehaviour
         return towerSpawner != null && towerSpawner.CanUpgradeTower(towerWeapon);
     }
 
+    public bool CanShowRepairOn(Tile tile)
+    {
+        ResolveTowerSpawner();
+        return towerSpawner != null && towerSpawner.CanShowRepairTile(tile);
+    }
+
     public void ShowSummon(Transform tileTransform)
     {
         if (popupRoot == null || tileTransform == null)
@@ -123,9 +139,11 @@ public class SummonPopupUI : MonoBehaviour
         popupMode = PopupMode.Summon;
         selectedTile = tileTransform;
         selectedTower = null;
+        selectedRepairTile = null;
         SetActionLabel("소환");
         SetGoldPanelVisible(true);
         UpdateGoldCostText();
+        UpdateButtonInteractable();
         popupRoot.gameObject.SetActive(true);
         UpdatePopupPosition();
     }
@@ -142,8 +160,31 @@ public class SummonPopupUI : MonoBehaviour
         popupMode = PopupMode.Upgrade;
         selectedTower = towerWeapon;
         selectedTile = null;
+        selectedRepairTile = null;
         SetActionLabel("승급");
         SetGoldPanelVisible(false);
+        UpdateButtonInteractable();
+        popupRoot.gameObject.SetActive(true);
+        UpdatePopupPosition();
+    }
+
+    public void ShowRepair(Tile tile)
+    {
+        if (popupRoot == null || tile == null)
+        {
+            return;
+        }
+
+        ResolveTowerSpawner();
+
+        popupMode = PopupMode.Repair;
+        selectedRepairTile = tile;
+        selectedTile = tile.transform;
+        selectedTower = null;
+        SetActionLabel("수리");
+        SetGoldPanelVisible(true);
+        UpdateGoldCostText();
+        UpdateButtonInteractable();
         popupRoot.gameObject.SetActive(true);
         UpdatePopupPosition();
     }
@@ -153,6 +194,7 @@ public class SummonPopupUI : MonoBehaviour
         popupMode = PopupMode.None;
         selectedTile = null;
         selectedTower = null;
+        selectedRepairTile = null;
 
         if (popupRoot != null)
         {
@@ -196,6 +238,10 @@ public class SummonPopupUI : MonoBehaviour
         {
             worldPosition = selectedTower.transform.position + popupWorldOffset;
         }
+        else if (popupMode == PopupMode.Repair && selectedRepairTile != null)
+        {
+            worldPosition = selectedRepairTile.transform.position + popupWorldOffset;
+        }
         else
         {
             return;
@@ -222,6 +268,10 @@ public class SummonPopupUI : MonoBehaviour
         {
             isSucceeded = towerSpawner.TryUpgradeTower(selectedTower);
         }
+        else if (popupMode == PopupMode.Repair && selectedRepairTile != null)
+        {
+            isSucceeded = towerSpawner.TryRepairTile(selectedRepairTile);
+        }
 
         if (isSucceeded)
         {
@@ -247,10 +297,49 @@ public class SummonPopupUI : MonoBehaviour
 
     private void UpdateGoldCostText()
     {
-        if (goldCostText != null && towerSpawner != null)
+        if (goldCostText == null || towerSpawner == null)
+        {
+            return;
+        }
+
+        if (popupMode == PopupMode.Repair && selectedRepairTile != null)
+        {
+            goldCostText.text = selectedRepairTile.RepairGold.ToString();
+            return;
+        }
+
+        if (popupMode == PopupMode.Summon)
         {
             goldCostText.text = towerSpawner.TowerBuildGold.ToString();
         }
+    }
+
+    private void UpdateButtonInteractable()
+    {
+        if (summonButton == null || towerSpawner == null)
+        {
+            return;
+        }
+
+        if (popupMode == PopupMode.Summon)
+        {
+            summonButton.interactable = selectedTile != null && towerSpawner.CanSpawnTower(selectedTile);
+            return;
+        }
+
+        if (popupMode == PopupMode.Upgrade)
+        {
+            summonButton.interactable = selectedTower != null && towerSpawner.CanUpgradeTower(selectedTower);
+            return;
+        }
+
+        if (popupMode == PopupMode.Repair)
+        {
+            summonButton.interactable = selectedRepairTile != null && towerSpawner.CanRepairTile(selectedRepairTile);
+            return;
+        }
+
+        summonButton.interactable = false;
     }
 
     private void OnDestroy()

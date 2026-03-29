@@ -79,7 +79,27 @@ public class ObjectDetector : MonoBehaviour
         }
 
         Tile tile = clickedTile.GetComponent<Tile>();
-        if (tile == null || tile.IsBuuldTower)
+        if (tile == null)
+        {
+            HideSummonPopup();
+            return;
+        }
+
+        if (tile.RequiresRepair)
+        {
+            if (summonPopupUI != null && summonPopupUI.CanShowRepairOn(tile))
+            {
+                summonPopupUI.ShowRepair(tile);
+            }
+            else
+            {
+                HideSummonPopup();
+            }
+
+            return;
+        }
+
+        if (tile.IsBuuldTower)
         {
             HideSummonPopup();
             return;

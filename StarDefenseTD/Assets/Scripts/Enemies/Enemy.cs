@@ -12,6 +12,10 @@ public class Enemy : MonoBehaviour
     private EnemySpawner enemySpawner;
 
     [SerializeField] private int gold = 10;
+    [SerializeField] private int attackDamage = 1;
+
+    public int GoldReward => gold;
+    public int AttackDamage => attackDamage;
 
     public void Setup(EnemySpawner enemySpawner, Transform[] wayPoints)
     {
@@ -25,6 +29,12 @@ public class Enemy : MonoBehaviour
         transform.position = wayPoints[currentIndex].position;
 
         StartCoroutine("OnMove");
+    }
+
+    public void ApplyWaveStats(int goldReward, int waveAttackDamage)
+    {
+        gold = Mathf.Max(0, goldReward);
+        attackDamage = Mathf.Max(0, waveAttackDamage);
     }
 
     private IEnumerator OnMove()
@@ -41,7 +51,6 @@ public class Enemy : MonoBehaviour
             }
 
             yield return null;
-
         }
     }
 
@@ -57,13 +66,12 @@ public class Enemy : MonoBehaviour
         }
         else
         {
-            gold = 0;
             OnDie(EnemyDestroyType.Arrive);
         }
     }
 
     public void OnDie(EnemyDestroyType destroyType)
     {
-        enemySpawner.DestroyEnemy(destroyType, this, gold);
+        enemySpawner.DestroyEnemy(destroyType, this);
     }
 }

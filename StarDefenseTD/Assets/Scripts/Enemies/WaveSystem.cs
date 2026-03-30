@@ -1,5 +1,5 @@
 using System.Collections;
-using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 
 public class WaveSystem : MonoBehaviour
@@ -7,6 +7,8 @@ public class WaveSystem : MonoBehaviour
     [SerializeField] private Wave[] waves;
     [SerializeField] private EnemySpawner enemySpawner;
     [SerializeField] private PlayerHP playerHP;
+    [SerializeField] private GameObject resultPopup;
+    [SerializeField] private TMP_Text resultText;
     [SerializeField] private bool autoStartWave = true;
     [SerializeField] private float firstWaveDelay = 5.0f;
     [SerializeField] private float waveInterval = 10.0f;
@@ -31,6 +33,8 @@ public class WaveSystem : MonoBehaviour
         {
             playerHP = FindObjectOfType<PlayerHP>();
         }
+
+        HideResultPopup();
     }
 
     private void Start()
@@ -92,8 +96,8 @@ public class WaveSystem : MonoBehaviour
             enemySpawner.StopAllSpawn();
         }
 
+        ShowResultPopup("== 게임 패배 ==");
         Debug.Log("Game Lose");
-        // TODO: 게임 패배 UI 연결
     }
 
     public void GameWin()
@@ -111,8 +115,8 @@ public class WaveSystem : MonoBehaviour
             enemySpawner.StopAllSpawn();
         }
 
+        ShowResultPopup("== 게임 승리 ==");
         Debug.Log("Game Win");
-        // TODO: 게임 승리 UI 연결
     }
 
     private IEnumerator AutoStartWave()
@@ -129,6 +133,27 @@ public class WaveSystem : MonoBehaviour
             }
 
             yield return new WaitForSeconds(waveInterval);
+        }
+    }
+
+    private void ShowResultPopup(string message)
+    {
+        if (resultText != null)
+        {
+            resultText.text = message;
+        }
+
+        if (resultPopup != null)
+        {
+            resultPopup.SetActive(true);
+        }
+    }
+
+    private void HideResultPopup()
+    {
+        if (resultPopup != null)
+        {
+            resultPopup.SetActive(false);
         }
     }
 
@@ -156,4 +181,3 @@ public struct Wave
     public int enemyAttackDamage;
     public GameObject[] enemyPrefabs;
 }
-

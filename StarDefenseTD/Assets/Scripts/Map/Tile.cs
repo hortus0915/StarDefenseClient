@@ -1,9 +1,11 @@
 using UnityEngine;
+using UnityEngine.Serialization;
 
 public class Tile : MonoBehaviour
 {
     [SerializeField] private bool requiresRepair;
-    [SerializeField] private int repairGold = 20;
+    [FormerlySerializedAs("repairGold")]
+    [SerializeField] private int repairMineral = 20;
     [SerializeField] private SpriteRenderer tileRenderer;
     [SerializeField] private Sprite defaultTileSprite;
     [SerializeField] private Sprite lockedTileSprite;
@@ -11,7 +13,7 @@ public class Tile : MonoBehaviour
     public bool IsBuuldTower { get; set; }
     public TowerWeapon CurrentTower { get; private set; }
     public bool RequiresRepair => requiresRepair;
-    public int RepairGold => repairGold;
+    public int RepairMineral => repairMineral;
     public bool CanBuildTower => requiresRepair == false && IsBuuldTower == false;
 
     private void Awake()

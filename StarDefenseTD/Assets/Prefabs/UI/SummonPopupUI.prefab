@@ -216,13 +216,20 @@ MonoBehaviour:
   changeButton: {fileID: 1297887365693198923}
   towerSpawner: {fileID: 0}
   playerGold: {fileID: 0}
+  playerMineral: {fileID: 0}
   worldCamera: {fileID: 0}
   popupWorldOffset: {x: 0, y: 0, z: 0}
   actionLabelText: {fileID: 7029183385108915186}
   goldCostText: {fileID: 2563817470842489954}
   changeGoldCostText: {fileID: 7469827800952648559}
-  goldPanel: {fileID: 2772160924741768267}
-  changeGold: 75
+  goldPanel: {fileID: 9215755895116203091}
+  primaryCurrencyIconImage: {fileID: 8709494807234985241}
+  changeCurrencyIconImage: {fileID: 3440290238034613119}
+  goldCurrencySprite: {fileID: 21300000, guid: 7266c309376f8ac4484a6b1dddf5eb25, type: 3}
+  mineralCurrencySprite: {fileID: 21300000, guid: a2e76e0bceb964c4f817e604612deaab, type: 3}
+  affordableCostColor: {r: 1, g: 1, b: 1, a: 1}
+  insufficientCostColor: {r: 1, g: 0, b: 0, a: 1}
+  changeMineral: 75
 --- !u!1 &2473655181218450120
 GameObject:
   m_ObjectHideFlags: 0
@@ -297,8 +304,8 @@ MonoBehaviour:
   m_fontMaterials: []
   m_fontColor32:
     serializedVersion: 2
-    rgba: 4294967295
-  m_fontColor: {r: 1, g: 1, b: 1, a: 1}
+    rgba: 4278190335
+  m_fontColor: {r: 1, g: 0, b: 0, a: 1}
   m_enableVertexGradient: 0
   m_colorMode: 3
   m_fontColorGradient:
@@ -460,7 +467,7 @@ MonoBehaviour:
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:
@@ -812,7 +819,7 @@ MonoBehaviour:
   m_OnCullStateChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_Sprite: {fileID: 21300000, guid: 7266c309376f8ac4484a6b1dddf5eb25, type: 3}
+  m_Sprite: {fileID: 21300000, guid: a2e76e0bceb964c4f817e604612deaab, type: 3}
   m_Type: 0
   m_PreserveAspect: 0
   m_FillCenter: 1
@@ -1059,7 +1066,7 @@ MonoBehaviour:
     m_HighlightedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
     m_PressedColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_SelectedColor: {r: 0.9607843, g: 0.9607843, b: 0.9607843, a: 1}
-    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 0.5019608}
+    m_DisabledColor: {r: 0.78431374, g: 0.78431374, b: 0.78431374, a: 1}
     m_ColorMultiplier: 1
     m_FadeDuration: 0.1
   m_SpriteState:

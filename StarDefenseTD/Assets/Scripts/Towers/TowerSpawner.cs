@@ -12,6 +12,7 @@ public class TowerSpawner : MonoBehaviour
     [SerializeField] private EnemySpawner enemySpawner;
     [SerializeField] private int towerBuildGold = 20;
     [SerializeField] private PlayerGold playerGold;
+    [SerializeField] private PlayerMineral playerMineral;
     [SerializeField] private float towerSpawnYOffset = 0.1f;
     [SerializeField] private Vector3 towerColliderCenter = new Vector3(0.0f, 0.0f, 0.0f);
     [SerializeField] private Vector3 towerColliderSize = new Vector3(1.2f, 1.2f, 0.2f);
@@ -25,12 +26,7 @@ public class TowerSpawner : MonoBehaviour
 
     public bool CanSpawnTower(Transform tileTransform)
     {
-        if (tileTransform == null || towerPrefab == null || playerGold == null)
-        {
-            return false;
-        }
-
-        if (towerBuildGold > playerGold.CurrnetGold)
+        if (tileTransform == null || towerPrefab == null)
         {
             return false;
         }
@@ -51,27 +47,22 @@ public class TowerSpawner : MonoBehaviour
 
     public bool CanRepairTile(Tile tile)
     {
-        if (tile == null || playerGold == null)
-        {
-            return false;
-        }
-
-        if (tile.CanRepair() == false)
-        {
-            return false;
-        }
-
-        return tile.RepairGold <= playerGold.CurrnetGold;
+        return tile != null && tile.CanRepair();
     }
 
     public bool TryRepairTile(Tile tile)
     {
-        if (CanRepairTile(tile) == false)
+        if (CanRepairTile(tile) == false || playerMineral == null)
         {
             return false;
         }
 
-        playerGold.CurrnetGold -= tile.RepairGold;
+        if (tile.RepairMineral > playerMineral.CurrentMineral)
+        {
+            return false;
+        }
+
+        playerMineral.CurrentMineral -= tile.RepairMineral;
         return tile.TryRepair();
     }
 
@@ -102,7 +93,12 @@ public class TowerSpawner : MonoBehaviour
 
     public bool SpawnTower(Transform tileTransform)
     {
-        if (CanSpawnTower(tileTransform) == false)
+        if (CanSpawnTower(tileTransform) == false || playerGold == null)
+        {
+            return false;
+        }
+
+        if (towerBuildGold > playerGold.CurrnetGold)
         {
             return false;
         }

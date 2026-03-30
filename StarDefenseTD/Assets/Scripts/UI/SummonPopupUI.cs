@@ -1,5 +1,6 @@
 using TMPro;
 using UnityEngine;
+using UnityEngine.Serialization;
 using UnityEngine.UI;
 
 public class SummonPopupUI : MonoBehaviour
@@ -26,13 +27,21 @@ public class SummonPopupUI : MonoBehaviour
     [SerializeField] private Button changeButton;
     [SerializeField] private TowerSpawner towerSpawner;
     [SerializeField] private PlayerGold playerGold;
+    [SerializeField] private PlayerMineral playerMineral;
     [SerializeField] private Camera worldCamera;
     [SerializeField] private Vector3 popupWorldOffset = new Vector3(0.0f, 0.6f, 0.0f);
     [SerializeField] private TMP_Text actionLabelText;
     [SerializeField] private TMP_Text goldCostText;
     [SerializeField] private TMP_Text changeGoldCostText;
     [SerializeField] private GameObject goldPanel;
-    [SerializeField] private int changeGold = 75;
+    [SerializeField] private Image primaryCurrencyIconImage;
+    [SerializeField] private Image changeCurrencyIconImage;
+    [SerializeField] private Sprite goldCurrencySprite;
+    [SerializeField] private Sprite mineralCurrencySprite;
+    [SerializeField] private Color affordableCostColor = Color.white;
+    [SerializeField] private Color insufficientCostColor = Color.red;
+    [FormerlySerializedAs("changeGold")]
+    [SerializeField] private int changeMineral = 75;
 
     private Transform selectedTile;
     private TowerWeapon selectedTower;
@@ -54,13 +63,14 @@ public class SummonPopupUI : MonoBehaviour
         ValidateInspectorReferences();
         ResolveTowerSpawner();
         ResolvePlayerGold();
+        ResolvePlayerMineral();
 
         if (worldCamera == null)
         {
             worldCamera = Camera.main;
         }
 
-        ApplyStaticCostTexts();
+        ApplyStaticChangeCostDisplay();
 
         if (summonButton != null)
         {
@@ -77,7 +87,7 @@ public class SummonPopupUI : MonoBehaviour
 
     private void OnValidate()
     {
-        ApplyStaticCostTexts();
+        ApplyStaticChangeCostDisplay();
     }
 
     public bool CanShowOn(Transform tileTransform)
@@ -89,8 +99,7 @@ public class SummonPopupUI : MonoBehaviour
     public bool CanShowTowerActionsOn(TowerWeapon towerWeapon)
     {
         ResolveTowerSpawner();
-        ResolvePlayerGold();
-        return towerSpawner != null && towerWeapon != null && (towerSpawner.CanUpgradeTower(towerWeapon) || CanChangeTowerWithCost(towerWeapon));
+        return towerSpawner != null && towerWeapon != null && (towerSpawner.CanUpgradeTower(towerWeapon) || CanChangeTower(towerWeapon));
     }
 
     public bool CanShowRepairOn(Tile tile)
@@ -118,7 +127,9 @@ public class SummonPopupUI : MonoBehaviour
         SetGoldPanelVisible(true);
         SetPrimaryButtonVisible(true);
         SetChangeButtonVisible(false);
-        UpdateGoldCostText();
+        ApplyPrimaryCurrencyIcon(goldCurrencySprite);
+        UpdatePrimaryCostText();
+        UpdateCostTextColors();
         UpdateButtonInteractable();
         popupRoot.gameObject.SetActive(true);
         UpdatePopupPosition();
@@ -143,7 +154,9 @@ public class SummonPopupUI : MonoBehaviour
         SetGoldPanelVisible(true);
         SetPrimaryButtonVisible(true);
         SetChangeButtonVisible(false);
-        UpdateGoldCostText();
+        ApplyPrimaryCurrencyIcon(mineralCurrencySprite);
+        UpdatePrimaryCostText();
+        UpdateCostTextColors();
         UpdateButtonInteractable();
         popupRoot.gameObject.SetActive(true);
         UpdatePopupPosition();
@@ -157,14 +170,13 @@ public class SummonPopupUI : MonoBehaviour
         }
 
         ResolveTowerSpawner();
-        ResolvePlayerGold();
         if (towerSpawner == null)
         {
             return;
         }
 
         bool canUpgrade = towerSpawner.CanUpgradeTower(towerWeapon);
-        bool canChange = CanChangeTowerWithCost(towerWeapon);
+        bool canChange = CanChangeTower(towerWeapon);
         if (canUpgrade == false && canChange == false)
         {
             Hide();
@@ -182,12 +194,14 @@ public class SummonPopupUI : MonoBehaviour
 
         SetPrimaryButtonVisible(canUpgrade);
         SetChangeButtonVisible(canChange);
+        ApplyStaticChangeCostDisplay();
 
         if (canUpgrade)
         {
             SetActionLabel("승급");
         }
 
+        UpdateCostTextColors();
         UpdateButtonInteractable();
         popupRoot.gameObject.SetActive(true);
         UpdatePopupPosition();
@@ -247,6 +261,16 @@ public class SummonPopupUI : MonoBehaviour
         playerGold = FindFirstObjectByType<PlayerGold>(FindObjectsInactive.Include);
     }
 
+    private void ResolvePlayerMineral()
+    {
+        if (playerMineral != null)
+        {
+            return;
+        }
+
+        playerMineral = FindFirstObjectByType<PlayerMineral>(FindObjectsInactive.Include);
+    }
+
     private bool IsSceneInstance(TowerSpawner spawner)
     {
         return spawner != null && spawner.gameObject.scene.IsValid() && spawner.gameObject.scene.isLoaded;
@@ -281,16 +305,29 @@ public class SummonPopupUI : MonoBehaviour
 
         if (changeGoldCostText == null)
         {
-            Debug.LogWarning("SummonPopupUI: Change Gold Cost Text is not assigned.", this);
+            Debug.LogWarning("SummonPopupUI: Change Cost Text is not assigned.", this);
+        }
+
+        if (primaryCurrencyIconImage == null)
+        {
+            Debug.LogWarning("SummonPopupUI: Primary Currency Icon Image is not assigned.", this);
+        }
+
+        if (changeCurrencyIconImage == null)
+        {
+            Debug.LogWarning("SummonPopupUI: Change Currency Icon Image is not assigned.", this);
         }
     }
 
-    private void ApplyStaticCostTexts()
+    private void ApplyStaticChangeCostDisplay()
     {
         if (changeGoldCostText != null)
         {
-            changeGoldCostText.text = changeGold.ToString();
+            changeGoldCostText.text = changeMineral.ToString();
         }
+
+        ApplyChangeCurrencyIcon(mineralCurrencySprite);
+        UpdateCostTextColors();
     }
 
     private void LateUpdate()
@@ -320,14 +357,15 @@ public class SummonPopupUI : MonoBehaviour
                 return;
             }
 
-            if (towerSpawner == null || (towerSpawner.CanUpgradeTower(selectedTower) == false && CanChangeTowerWithCost(selectedTower) == false))
+            if (towerSpawner == null || (towerSpawner.CanUpgradeTower(selectedTower) == false && CanChangeTower(selectedTower) == false))
             {
                 Hide();
                 return;
             }
         }
 
-        UpdateGoldCostText();
+        UpdatePrimaryCostText();
+        UpdateCostTextColors();
         UpdateButtonInteractable();
         UpdatePopupPosition();
     }
@@ -370,6 +408,7 @@ public class SummonPopupUI : MonoBehaviour
     {
         ResolveTowerSpawner();
         ResolvePlayerGold();
+        ResolvePlayerMineral();
 
         if (towerSpawner == null)
         {
@@ -385,7 +424,12 @@ public class SummonPopupUI : MonoBehaviour
             case PopupAction.Repair:
                 return selectedRepairTile != null && towerSpawner.TryRepairTile(selectedRepairTile);
             case PopupAction.Change:
-                if (selectedTower == null || CanChangeTowerWithCost(selectedTower) == false)
+                if (selectedTower == null || CanChangeTower(selectedTower) == false)
+                {
+                    return false;
+                }
+
+                if (playerMineral == null || changeMineral > playerMineral.CurrentMineral)
                 {
                     return false;
                 }
@@ -395,21 +439,16 @@ public class SummonPopupUI : MonoBehaviour
                     return false;
                 }
 
-                playerGold.CurrnetGold -= changeGold;
+                playerMineral.CurrentMineral -= changeMineral;
                 return true;
             default:
                 return false;
         }
     }
 
-    private bool CanChangeTowerWithCost(TowerWeapon towerWeapon)
+    private bool CanChangeTower(TowerWeapon towerWeapon)
     {
-        if (towerSpawner == null || towerWeapon == null || playerGold == null)
-        {
-            return false;
-        }
-
-        if (changeGold > playerGold.CurrnetGold)
+        if (towerSpawner == null || towerWeapon == null)
         {
             return false;
         }
@@ -449,7 +488,7 @@ public class SummonPopupUI : MonoBehaviour
         }
     }
 
-    private void UpdateGoldCostText()
+    private void UpdatePrimaryCostText()
     {
         if (towerSpawner == null || goldCostText == null)
         {
@@ -458,13 +497,60 @@ public class SummonPopupUI : MonoBehaviour
 
         if (popupMode == PopupMode.Repair && selectedRepairTile != null)
         {
-            goldCostText.text = selectedRepairTile.RepairGold.ToString();
+            goldCostText.text = selectedRepairTile.RepairMineral.ToString();
             return;
         }
 
         if (popupMode == PopupMode.Summon)
         {
             goldCostText.text = towerSpawner.TowerBuildGold.ToString();
+        }
+    }
+
+    private void UpdateCostTextColors()
+    {
+        if (goldCostText != null)
+        {
+            goldCostText.color = IsPrimaryCostAffordable() ? affordableCostColor : insufficientCostColor;
+        }
+
+        if (changeGoldCostText != null)
+        {
+            changeGoldCostText.color = IsChangeCostAffordable() ? affordableCostColor : insufficientCostColor;
+        }
+    }
+
+    private bool IsPrimaryCostAffordable()
+    {
+        switch (popupMode)
+        {
+            case PopupMode.Summon:
+                return playerGold != null && towerSpawner != null && playerGold.CurrnetGold >= towerSpawner.TowerBuildGold;
+            case PopupMode.Repair:
+                return playerMineral != null && selectedRepairTile != null && playerMineral.CurrentMineral >= selectedRepairTile.RepairMineral;
+            default:
+                return true;
+        }
+    }
+
+    private bool IsChangeCostAffordable()
+    {
+        return playerMineral != null && playerMineral.CurrentMineral >= changeMineral;
+    }
+
+    private void ApplyPrimaryCurrencyIcon(Sprite currencySprite)
+    {
+        if (primaryCurrencyIconImage != null && currencySprite != null)
+        {
+            primaryCurrencyIconImage.sprite = currencySprite;
+        }
+    }
+
+    private void ApplyChangeCurrencyIcon(Sprite currencySprite)
+    {
+        if (changeCurrencyIconImage != null && currencySprite != null)
+        {
+            changeCurrencyIconImage.sprite = currencySprite;
         }
     }
 
@@ -497,7 +583,7 @@ public class SummonPopupUI : MonoBehaviour
             case PopupAction.Repair:
                 return selectedRepairTile != null && towerSpawner.CanRepairTile(selectedRepairTile);
             case PopupAction.Change:
-                return selectedTower != null && CanChangeTowerWithCost(selectedTower);
+                return selectedTower != null && CanChangeTower(selectedTower);
             default:
                 return false;
         }

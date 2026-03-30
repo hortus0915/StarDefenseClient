@@ -5,14 +5,13 @@ using UnityEngine;
 public class EnemySpawner : MonoBehaviour
 {
     [SerializeField] private GameObject enemyHPSliderPrefab;
-    [SerializeField] private Transform canvasTransform;
+    [SerializeField] private Transform enemyHPSliderPoolRoot;
     [SerializeField] private Transform[] wayPoints;
     [SerializeField] private PlayerHP playerHP;
     [SerializeField] private PlayerGold playerGold;
 
     private List<Enemy> enemyList;
     private Dictionary<Enemy, GameObject> enemySliderMap;
-    private Transform enemyHPSliderPoolRoot;
     private int activeSpawnRoutineCount;
 
     public List<Enemy> EnemyList => enemyList;
@@ -65,14 +64,9 @@ public class EnemySpawner : MonoBehaviour
 
     private void SpawnEnemyHPSlider(Enemy enemy)
     {
-        if (enemy == null || enemyHPSliderPrefab == null || canvasTransform == null)
+        if (enemy == null || enemyHPSliderPrefab == null || enemyHPSliderPoolRoot == null)
         {
             return;
-        }
-
-        if (enemyHPSliderPoolRoot == null)
-        {
-            enemyHPSliderPoolRoot = ObjectPoolManager.Instance.GetOrCreatePoolRoot("EnemyHPSliderPool", canvasTransform);
         }
 
         GameObject sliderClone = ObjectPoolManager.Instance.GetObject(enemyHPSliderPrefab, Vector3.zero, Quaternion.identity, enemyHPSliderPoolRoot);
